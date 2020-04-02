@@ -45,6 +45,37 @@ void* dash_f(void* argv){
     char fileext[10];
     if (!ext) {
         sprintf(folder,"/home/edo/Kuliah/Sisop/SoalShiftSISOP20_modul3_E09/soal3/soal3/Unknown");
+        if(mkdir(folder,S_IRUSR | S_IWUSR | S_IXUSR)==0){
+            printf("success\n");
+            DIR *d;
+            struct dirent *dir;
+            d = opendir("./soal3");
+            if (d)
+            {
+                while ((dir = readdir(d)) != NULL){
+                    char from[100],to[100];
+                    memset(from,0,150*sizeof(char));
+                    memset(to,0,150*sizeof(char));
+                    strcpy(from,"/home/edo/Kuliah/Sisop/SoalShiftSISOP20_modul3_E09/soal3/soal3/");
+                    sprintf(to,"%s/",folder);
+                    char *dr = strrchr(dir->d_name, '.');
+                    if(!dr){
+                        strcat(from,dir->d_name);
+                        strcat(to,dir->d_name);
+                        printf("%s\n",dir->d_name);
+                        if(is_dir(from)){
+                            continue;
+                        } else {
+                            rename(from,to);
+                        }
+                    }                                
+                }
+                closedir(d);
+            }
+            // exit(EXIT_SUCCESS);
+        } else {
+            printf("Error %s\n",strerror(errno));
+        }
     } else {
         // printf("extension is %s\n", ext);
         sprintf(folder,"/home/edo/Kuliah/Sisop/SoalShiftSISOP20_modul3_E09/soal3/soal3/%s",ext + 1);
@@ -111,8 +142,12 @@ int main(int argc,char* argv[]){
             // count++;
             // printf("%s ",argv[i]);
             char *ext = strrchr(argv[i], '.');
+            if(!ext){
+                pthread_create(&threads[++count],NULL,dash_f,NULL);
+            } else {
+                pthread_create(&threads[++count],NULL,dash_f,(void*)ext);
+            }
             // dash_f((void*)ext);
-            pthread_create(&threads[++count],NULL,dash_f,(void*)ext);
         }
         printf("selesai\n");
         for(int i=0;i<=count;i++){
