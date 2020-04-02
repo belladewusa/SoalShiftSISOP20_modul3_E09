@@ -41,10 +41,11 @@ int is_ext(char fileext[],int len_ext,char* dird_name,int len_file) {
 void* dash_f(void* argv){
     char *ext = (char*)argv;
     char folder[100];
+    memset(folder,0,100*sizeof(char));
     int len_ext,len_file;
     char fileext[10];
     if (!ext) {
-        sprintf(folder,"/home/edo/Kuliah/Sisop/SoalShiftSISOP20_modul3_E09/soal3/soal3/Unknown");
+        sprintf(folder,"/home/edo/Kuliah/Sisop/SoalShiftSISOP20_modul3_E09/soal3/Unknown");
         if(mkdir(folder,S_IRUSR | S_IWUSR | S_IXUSR)==0){
             printf("success\n");
             DIR *d;
@@ -78,7 +79,7 @@ void* dash_f(void* argv){
         }
     } else {
         // printf("extension is %s\n", ext);
-        sprintf(folder,"/home/edo/Kuliah/Sisop/SoalShiftSISOP20_modul3_E09/soal3/soal3/%s",ext + 1);
+        sprintf(folder,"/home/edo/Kuliah/Sisop/SoalShiftSISOP20_modul3_E09/soal3/%s",ext + 1);
         // pthread_create(&threads[count++],NULL,&categorize_it,(void*)ext);
         sprintf(fileext,"%s",ext);
         len_ext = strlen(fileext);
@@ -119,12 +120,8 @@ void* dash_f(void* argv){
 
 int main(int argc,char* argv[]){
     int f_or_d = 0;
-    // char folder[100];
-    // int len_ext,len_file;
-    // char fileext[10];
-    int err;
     pthread_t *threads; 
-	threads = (pthread_t*)malloc(argc*sizeof(pthread_t));
+	threads = (pthread_t*)malloc(100*sizeof(pthread_t));
     if(strcmp(argv[1],"-f")==0){
         f_or_d = 1;
     } else if(strcmp(argv[1],"-d")==0){
@@ -154,6 +151,36 @@ int main(int argc,char* argv[]){
             pthread_join(threads[i],NULL);
         }
         
+    } else if (f_or_d==3){
+        int count = -1;
+        DIR *d;
+        struct dirent *dir;
+        d = opendir("./soal3");
+        if (d)
+        {
+            while ((dir = readdir(d)) != NULL){
+                char format[150]="\0";
+                memset(format,0,150*sizeof(char));
+                strcpy(format,"/home/edo/Kuliah/Sisop/SoalShiftSISOP20_modul3_E09/soal3/soal3/");
+                char *ext = strrchr(dir->d_name, '.');
+                strcat(format,dir->d_name);
+                if(is_dir(format)){
+                    printf("%s ==============directory=============\n",dir->d_name);
+                } else {
+                    if(!ext){
+                        printf("%s - kosong\n",dir->d_name);
+                        pthread_create(&threads[++count],NULL,dash_f,NULL);
+                    } else {
+                        printf("%s - %s\n",dir->d_name,ext);
+                        pthread_create(&threads[++count],NULL,dash_f,(void*)ext);
+                    }
+                }
+                sleep(2);
+            } closedir(d);
+        }
+        for(int i=0;i<=count;i++){
+            pthread_join(threads[i],NULL);
+        }
     }
     
 
